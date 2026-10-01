@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nexus Crypt">
+    <meta name="theme-color" content="#0a0d12">
+    <title>NEXUS CRYPT — VERIFICAÇÃO DE BLINDAGEM</title>
+    <style>
+        :root {
+            --bg: #0a0d12;
+            --card: rgba(19, 24, 32, 0.75);
+            --card-solid: #131820;
+            --border: rgba(0, 212, 255, 0.15);
+            --border-hover: rgba(0, 212, 255, 0.5);
+            --cyan: #00d4ff;
+            --cyan-2: #0088cc;
+            --cyan-glow: rgba(0, 212, 255, 0.5);
+            --green: #00e676;
+            --green-glow: rgba(0, 230, 118, 0.4);
+            --red: #ff1744;
+            --red-glow: rgba(255, 23, 68, 0.4);
+            --orange: #ff9100;
+            --purple: #7c4dff;
+            --text: #b8c5d6;
+            --text-bright: #ffffff;
+            --text-dim: #6b7a8f;
+            --text-darker: #3d4653;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            padding-top: calc(12px + env(safe-area-inset-top));
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            padding-left: calc(12px + env(safe-area-inset-left));
+            padding-right: calc(12px + env(safe-area-inset-right));
+            position: relative;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at top, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(124, 77, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0d12 0%, #0d1117 100%);
+            pointer-events: none;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.04;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.5) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .bg-scanline {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            z-index: 1;
+            opacity: 0.2;
+            animation: scanDown 6s linear infinite;
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        @keyframes scanDown {
+            0% { top: -5%; opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { top: 105%; opacity: 0; }
+        }
+
+        .particles-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* OVERLAY DE ATIVAÇÃO DE ÁUDIO (iOS) */
+        .audio-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 999999;
+            background: rgba(10, 13, 18, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            cursor: pointer;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .audio-overlay.active { display: flex; }
+
+        .audio-overlay-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        .audio-overlay-title {
+            color: var(--text-bright);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .audio-overlay-text {
+            color: var(--text-dim);
+            font-size: 12px;
+            line-height: 1.7;
+            max-width: 280px;
+            margin-bottom: 30px;
+        }
+
+        .audio-overlay-button {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.05));
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 12px;
+            cursor: pointer;
+            text-shadow: 0 0 10px var(--cyan-glow);
+            box-shadow: 0 0 30px var(--cyan-glow);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        /* BOTÕES DE CONTROLE */
+        .control-buttons {
+            position: fixed;
+            top: calc(12px + env(safe-area-inset-top));
+            right: calc(12px + env(safe-area-inset-right));
+            z-index: 9999;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-control {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(19, 24, 32, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            color: var(--cyan);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-control:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-control:active { transform: scale(0.92); }
+
+        .btn-control.btn-back { color: var(--cyan); border-color: var(--border-hover); }
+
+        .btn-control.btn-exit {
+            color: var(--red);
+            border-color: rgba(255, 23, 68, 0.3);
+        }
+
+        .btn-control.btn-exit:hover {
+            border-color: var(--red);
+            box-shadow: 0 0 20px var(--red-glow);
+        }
+
+        .btn-control svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* MODAL DE SAÍDA */
+        .exit-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .exit-modal.active { display: flex; }
+
+        .exit-modal-content {
+            background: var(--card-solid);
+            border: 1px solid var(--border-hover);
+            border-radius: 20px;
+            padding: 30px 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 60px rgba(0, 212, 255, 0.1);
+            animation: resultIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .exit-modal-icon { font-size: 48px; margin-bottom: 16px; }
+
+        .exit-modal-title {
+            color: var(--text-bright);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .exit-modal-text {
+            color: var(--text-dim);
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .exit-modal-buttons { display: flex; gap: 10px; }
+
+        .exit-modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid;
+        }
+
+        .exit-modal-btn.cancel {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .exit-modal-btn.cancel:hover {
+            border-color: var(--border-hover);
+            color: var(--cyan);
+        }
+
+        .exit-modal-btn.confirm {
+            background: rgba(255, 23, 68, 0.1);
+            border-color: rgba(255, 23, 68, 0.4);
+            color: var(--red);
+        }
+
+        .exit-modal-btn.confirm:hover {
+            background: rgba(255, 23, 68, 0.2);
+            border-color: var(--red);
+            box-shadow: 0 0 20px var(--red-glow);
+        }
+
+        /* SPLASH */
+        .splash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9998;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .splash.hidden { opacity: 0; visibility: hidden; }
+
+        .splash-logo {
+            width: 110px;
+            height: 110px;
+            border-radius: 26px;
+            overflow: hidden;
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 40px var(--cyan-glow), 0 0 80px rgba(0, 212, 255, 0.2);
+            margin-bottom: 24px;
+            animation: splashPulse 2s ease-in-out infinite;
+        }
+
+        .splash-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+        @keyframes splashPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .splash-title {
+            color: var(--text-bright);
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+        }
+
+        .splash-title span { color: var(--cyan); }
+
+        .splash-subtitle {
+            color: var(--text-dim);
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .splash-loader {
+            width: 200px;
+            height: 2px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .splash-loader-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--cyan-2), var(--cyan));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .splash-status {
+            color: var(--text-dim);
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px 18px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 96vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(0, 212, 255, 0.05) inset;
+            display: none;
+            animation: containerIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .container.active { display: block; }
+
+        @keyframes containerIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .container::-webkit-scrollbar { width: 3px; }
+        .container::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 2px; }
+
+        .header { text-align: center; margin-bottom: 20px; }
+
+        .logo-wrapper {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 16px;
+        }
+
+        .logo-hologram {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border-radius: 20px;
+            border: 1px solid var(--cyan);
+            animation: hologramSpin 8s linear infinite;
+            opacity: 0.3;
+        }
+
+        .logo-hologram::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 22px;
+            background: conic-gradient(from 0deg, transparent, var(--cyan), transparent, var(--purple), transparent);
+            z-index: -1;
+            animation: hologramSpin 4s linear infinite;
+        }
+
+        @keyframes hologramSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo {
+            position: absolute;
+            top: 5px; left: 5px;
+            width: calc(100% - 10px);
+            height: calc(100% - 10px);
+            border-radius: 16px;
+            overflow: hidden;
+            background: var(--card-solid);
+            border: 1px solid var(--border-hover);
+            box-shadow: 0 0 30px var(--cyan-glow);
+        }
+
+        .logo img { width: 100%; height: 100%; object-fit: cover; }
+
+        .title {
+            color: var(--text-bright);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .title span { color: var(--cyan); text-shadow: 0 0 20px var(--cyan-glow); }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 18px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 11px 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 212, 255, 0.05));
+            color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(19, 24, 32, 0.9), rgba(13, 17, 23, 0.9));
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 10px;
+            text-align: center;
+            transition: all 0.4s;
+            position: relative;
+        }
+
+        .metric-card.verified {
+            border-color: var(--border-hover);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .metric-circle {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 8px;
+        }
+
+        .metric-circle svg {
+            width: 100%; height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .metric-circle-bg {
+            fill: none;
+            stroke: rgba(0, 212, 255, 0.1);
+            stroke-width: 3;
+        }
+
+        .metric-circle-fill {
+            fill: none;
+            stroke: var(--green);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 157;
+            stroke-dashoffset: 157;
+            transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: drop-shadow(0 0 4px var(--green-glow));
+        }
+
+        .metric-percent {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green);
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+        }
+
+        .metric-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .metric-status {
+            font-size: 8px;
+            color: var(--text-darker);
+            margin-top: 3px;
+            font-family: 'SF Mono', monospace;
+            transition: color 0.4s;
+        }
+
+        .metric-card.verified .metric-status {
+            color: var(--green);
+            text-shadow: 0 0 8px var(--green-glow);
+        }
+
+        .progress-container {
+            margin-bottom: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .progress-percent {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cyan);
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--cyan-2), var(--cyan));
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .log-area {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 5, 10, 0.8));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            height: 200px;
+            max-height: 32vh;
+            overflow: hidden;
+            text-align: left;
+            font-family: 'SF Mono', 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 9.5px;
+            line-height: 1.9;
+            margin-bottom: 14px;
+            position: relative;
+            box-shadow: inset 0 0 30px rgba(0, 212, 255, 0.05), 0 0 20px rgba(0, 212, 255, 0.08);
+        }
+
+        .log-area::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0, 212, 255, 0.02) 2px, rgba(0, 212, 255, 0.02) 4px);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+
+        .log-dots { display: flex; gap: 4px; }
+
+        .log-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+        }
+
+        .log-dot.red { background: #ff5f56; }
+        .log-dot.yellow { background: #ffbd2e; }
+        .log-dot.green { background: #27c93f; }
+
+        .log-title {
+            font-size: 8px;
+            color: var(--text-darker);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .log-body {
+            padding: 10px 12px;
+            height: calc(100% - 30px);
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .log-body::-webkit-scrollbar { width: 2px; }
+        .log-body::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; box-shadow: 0 0 5px var(--cyan-glow); }
+
+        .log-line {
+            display: flex;
+            gap: 8px;
+            padding: 2px 0;
+            animation: logIn 0.3s ease;
+        }
+
+        @keyframes logIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-time {
+            color: var(--text-darker);
+            flex-shrink: 0;
+            font-size: 8px;
+            opacity: 0.7;
+        }
+
+        .log-msg { color: var(--text); }
+        .log-msg .ok { color: var(--green); font-weight: 600; text-shadow: 0 0 6px var(--green-glow); }
+        .log-msg .warn { color: var(--orange); font-weight: 600; }
+        .log-msg .err { color: var(--red); font-weight: 600; text-shadow: 0 0 6px var(--red-glow); }
+        .log-msg .info { color: var(--cyan); text-shadow: 0 0 4px var(--cyan-glow); }
+
+        .result-box {
+            display: none;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.05), rgba(0, 212, 255, 0.03));
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            border-radius: 18px;
+            padding: 22px 18px;
+            animation: resultIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-box.active { display: block; }
+
+        @keyframes resultIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .result-icon-wrapper {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 14px;
+        }
+
+        .result-icon {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 230, 118, 0.1);
+            border: 2px solid var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 0 30px var(--green-glow);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .result-icon-rings {
+            position: absolute;
+            top: -10px; left: -10px;
+            width: calc(100% + 20px);
+            height: calc(100% + 20px);
+            border: 1px solid var(--green);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: ringExpand 2s ease-out infinite;
+        }
+
+        @keyframes ringExpand {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        .result-title {
+            color: var(--text-bright);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .result-subtitle {
+            color: var(--green);
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            margin-bottom: 18px;
+            text-shadow: 0 0 10px var(--green-glow);
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            text-align: left;
+            margin-bottom: 18px;
+        }
+
+        .detail-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .detail-label {
+            color: var(--text-dim);
+            font-size: 7px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: var(--text-bright);
+            font-weight: 700;
+            font-size: 10px;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+        }
+
+        .detail-value.ok { color: var(--green); text-shadow: 0 0 8px var(--green-glow); }
+        .detail-value.cyan { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 212, 255, 0.05));
+            border: 1px solid var(--border-hover);
+            color: var(--cyan);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(0, 212, 255, 0.1));
+            border-color: var(--cyan);
+            box-shadow: 0 0 30px var(--cyan-glow);
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+
+        .access-denied { text-align: center; padding: 20px 10px; }
+
+        .access-logo-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+        }
+
+        .access-logo {
+            width: 100%; height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 2px solid var(--red);
+            box-shadow: 0 0 40px var(--red-glow);
+            position: relative;
+        }
+
+        .access-logo img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(70%) brightness(0.6) contrast(1.2);
+        }
+
+        .access-lock-badge {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            width: 44px; height: 44px;
+            background: var(--card-solid);
+            border: 2px solid var(--red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 0 20px var(--red-glow);
+            animation: lockPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes lockPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .access-title {
+            color: var(--red);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 14px;
+            text-shadow: 0 0 20px var(--red-glow);
+        }
+
+        .access-text {
+            color: var(--text);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .access-text strong { color: var(--cyan); text-shadow: 0 0 10px var(--cyan-glow); }
+
+        .access-footer {
+            margin-top: 28px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            font-size: 8px;
+            color: var(--text-darker);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .network-visual {
+            position: relative;
+            width: 160px; height: 160px;
+            margin: 0 auto 20px;
+        }
+
+        .network-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid var(--cyan);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: ringNetwork 3s ease-out infinite;
+        }
+
+        .network-ring:nth-child(1) { width: 60px; height: 60px; }
+        .network-ring:nth-child(2) { width: 100px; height: 100px; animation-delay: 0.5s; }
+        .network-ring:nth-child(3) { width: 140px; height: 140px; animation-delay: 1s; }
+
+        @keyframes ringNetwork {
+            0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.5); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        .network-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px; height: 60px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.2), transparent 70%);
+            border: 2px solid var(--cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: 0 0 30px var(--cyan-glow);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        .rede-intro { text-align: center; padding: 20px 10px; }
+
+        .rede-intro-text {
+            color: var(--text-dim);
+            font-size: 11px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            max-width: 280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 380px) {
+            .container { padding: 18px 14px; border-radius: 20px; }
+            .title { font-size: 20px; }
+            .subtitle { font-size: 8px; letter-spacing: 2px; }
+            .logo-wrapper { width: 70px; height: 70px; }
+            .metric-circle { width: 50px; height: 50px; }
+            .metric-percent { font-size: 11px; }
+            .metric-label { font-size: 8px; letter-spacing: 1px; }
+            .log-area { height: 170px; }
+            .log-msg { font-size: 9px; }
+            .result-title { font-size: 18px; }
+            .result-icon-wrapper { width: 60px; height: 60px; }
+        }
+
+        @media (min-height: 800px) {
+            .log-area { height: 240px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-gradient"></div>
+    <canvas class="particles-canvas" id="particles"></canvas>
+    <div class="bg-grid"></div>
+    <div class="bg-scanline"></div>
+
+    <!-- OVERLAY DE ATIVAÇÃO DE ÁUDIO (iOS) -->
+    <div class="audio-overlay" id="audioOverlay" onclick="activateAudio()">
+        <div class="audio-overlay-icon">🔊</div>
+        <div class="audio-overlay-title">ATIVAR ÁUDIO</div>
+        <p class="audio-overlay-text">
+            Toque na tela para ativar o sistema de áudio do protocolo NEXUS CRYPT.
+        </p>
+        <button class="audio-overlay-button">TOQUE PARA ATIVAR</button>
+    </div>
+
+    <!-- BOTÕES DE CONTROLE -->
+    <div class="control-buttons">
+        <button class="btn-control btn-back" onclick="goBack()" title="Voltar" aria-label="Voltar">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <button class="btn-control btn-exit" onclick="confirmExit()" title="Sair" aria-label="Sair">
+            <svg viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- MODAL DE SAÍDA -->
+    <div class="exit-modal" id="exitModal">
+        <div class="exit-modal-content">
+            <div class="exit-modal-icon">🛡️</div>
+            <div class="exit-modal-title">ENCERRAR SESSÃO?</div>
+            <p class="exit-modal-text">
+                A verificação será interrompida. Para acessar novamente, use o link autorizado do protocolo NEXUS CRYPT.
+            </p>
+            <div class="exit-modal-buttons">
+                <button class="exit-modal-btn cancel" onclick="closeExitModal()">CANCELAR</button>
+                <button class="exit-modal-btn confirm" onclick="doExit()">SAIR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="splash" id="splash">
+        <div class="splash-logo">
+            <img src="escudo.jpg" alt="Nexus Crypt" onerror="this.style.display='none'">
+        </div>
+        <div class="splash-title">NEXUS <span>CRYPT</span></div>
+        <div class="splash-subtitle">Defensive Security Protocol</div>
+        <div class="splash-loader">
+            <div class="splash-loader-fill" id="splashLoader"></div>
+        </div>
+        <div class="splash-status" id="splashStatus">Inicializando...</div>
+    </div>
+
+    <div class="container" id="accessDenied">
+        <div class="access-denied">
+            <div class="access-logo-wrapper">
+                <div class="access-logo">
+                    <img src="escudo.jpg" alt="Nexus Crypt" onerror="this.style.display='none'">
+                </div>
+                <div class="access-lock-badge">🔒</div>
+            </div>
+            <div class="access-title">ACESSO RESTRITO</div>
+            <p class="access-text">
+                Esta aplicação só roda em dispositivos blindados sob o protocolo <strong>NEXUS CRYPT MDM</strong>.
+            </p>
+            <p class="access-text" style="color:var(--text-dim);font-size:11px;margin-top:16px;">
+                Se você recebeu este link e não é o proprietário autorizado, encerre esta página imediatamente.
+            </p>
+            <div class="access-footer">
+                NEXUS CRYPT MDM — DEFENSIVE SECURITY<br>
+                © LOCAL SECURITY UNIT
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="scannerContent">
+        <div class="header">
+            <div class="logo-wrapper">
+                <div class="logo-hologram"></div>
+                <div class="logo">
+                    <img src="escudo.jpg" alt="Nexus Crypt" onerror="this.style.display='none'">
+                </div>
+            </div>
+            <div class="title">NEXUS <span>CRYPT</span></div>
+            <div class="subtitle">Verificação de Blindagem Ativa</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" id="tabBlindagem" onclick="switchTab('blindagem')">Blindagem</button>
+            <button class="tab" id="tabRede" onclick="switchTab('rede')">Scan de Rede</button>
+        </div>
+
+        <div class="tab-content active" id="contentBlindagem">
+            <div class="metrics-grid">
+                <div class="metric-card" id="metric1">
+                    <div class="metric-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="metric-circle-bg" cx="30" cy="30" r="25"></circle>
+                            <circle class="metric-circle-fill" id="circle1" cx="30" cy="30" r="25"></circle>
+                        </svg>
+                        <div class="metric-percent" id="percent1">0%</div>
+                    </div>
+                    <div class="metric-label">AES-256</div>
+                    <div class="metric-status" id="status1">Aguardando</div>
+                </div>
+                <div class="metric-card" id="metric2">
+                    <div class="metric-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="metric-circle-bg" cx="30" cy="30" r="25"></circle>
+                            <circle class="metric-circle-fill" id="circle2" cx="30" cy="30" r="25"></circle>
+                        </svg>
+                        <div class="metric-percent" id="percent2">0%</div>
+                    </div>
+                    <div class="metric-label">Código Alfanum.</div>
+                    <div class="metric-status" id="status2">Aguardando</div>
+                </div>
+                <div class="metric-card" id="metric3">
+                    <div class="metric-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="metric-circle-bg" cx="30" cy="30" r="25"></circle>
+                            <circle class="metric-circle-fill" id="circle3" cx="30" cy="30" r="25"></circle>
+                        </svg>
+                        <div class="metric-percent" id="percent3">0%</div>
+                    </div>
+                    <div class="metric-label">USB Restrito</div>
+                    <div class="metric-status" id="status3">Aguardando</div>
+                </div>
+                <div class="metric-card" id="metric4">
+                    <div class="metric-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="metric-circle-bg" cx="30" cy="30" r="25"></circle>
+                            <circle class="metric-circle-fill" id="circle4" cx="30" cy="30" r="25"></circle>
+                        </svg>
+                        <div class="metric-percent" id="percent4">0%</div>
+                    </div>
+                    <div class="metric-label">Lockdown</div>
+                    <div class="metric-status" id="status4">Aguardando</div>
+                </div>
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-header">
+                    <span class="progress-label" id="progressLabel">Inicializando</span>
+                    <span class="progress-percent" id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="log-area">
+                <div class="log-header">
+                    <div class="log-dots">
+                        <div class="log-dot red"></div>
+                        <div class="log-dot yellow"></div>
+                        <div class="log-dot green"></div>
+                    </div>
+                    <div class="log-title">NEXUS_CRYPT://scan</div>
+                    <div></div>
+                </div>
+                <div class="log-body" id="logArea"></div>
+            </div>
+
+            <div class="result-box" id="resultBox">
+                <div class="result-icon-wrapper">
+                    <div class="result-icon-rings"></div>
+                    <div class="result-icon">✓</div>
+                </div>
+                <div class="result-title">Dispositivo Blindado</div>
+                <div class="result-subtitle">Protocolo Nexus Crypt V3 — Operacional</div>
+                <div class="result-details">
+                    <div class="detail-item"><div class="detail-label">Criptografia</div><div class="detail-value ok">AES-256</div></div>
+                    <div class="detail-item"><div class="detail-label">Código</div><div class="detail-value ok">14+ CARACTERES</div></div>
+                    <div class="detail-item"><div class="detail-label">USB Restrito</div><div class="detail-value ok">ATIVO</div></div>
+                    <div class="detail-item"><div class="detail-label">Lockdown</div><div class="detail-value ok">ATIVO</div></div>
+                    <div class="detail-item"><div class="detail-label">Perfil MDM</div><div class="detail-value cyan">NEXUS_CRYPT</div></div>
+                    <div class="detail-item"><div class="detail-label">Forense</div><div class="detail-value ok">BLOQUEADA</div></div>
+                </div>
+                <button class="btn-primary" onclick="switchTab('rede')">VERIFICAR REDE →</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="contentRede">
+            <div class="rede-intro" id="redeIntro">
+                <div class="network-visual">
+                    <div class="network-ring"></div>
+                    <div class="network-ring"></div>
+                    <div class="network-ring"></div>
+                    <div class="network-center">🌐</div>
+                </div>
+                <h3 style="color: var(--text-bright); font-size: 18px; margin-bottom: 8px; letter-spacing: 1px;">Scan de Rede</h3>
+                <p class="rede-intro-text">
+                    Verificação de túnel VPN, DNS criptografado e vazamentos de IP.
+                </p>
+                <button class="btn-primary" onclick="startRedeScan()">INICIAR SCAN DE REDE</button>
+            </div>
+
+            <div class="progress-container" id="progressContainerRede" style="display:none;">
+                <div class="progress-header">
+                    <span class="progress-label" id="progressLabelRede">Inicializando</span>
+                    <span class="progress-percent" id="progressPercentRede">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFillRede"></div>
+                </div>
+            </div>
+
+            <div class="log-area" id="logAreaRedeWrapper" style="display:none;">
+                <div class="log-header">
+                    <div class="log-dots">
+                        <div class="log-dot red"></div>
+                        <div class="log-dot yellow"></div>
+                        <div class="log-dot green"></div>
+                    </div>
+                    <div class="log-title">NEXUS_CRYPT://network</div>
+                    <div></div>
+                </div>
+                <div class="log-body" id="logAreaRede"></div>
+            </div>
+
+            <div class="result-box" id="resultBoxRede" style="display:none;border-color:rgba(0,212,255,0.3);background:linear-gradient(135deg, rgba(0,212,255,0.05), rgba(124,77,255,0.03));">
+                <div class="result-icon-wrapper">
+                    <div class="result-icon-rings" style="border-color:var(--cyan);"></div>
+                    <div class="result-icon" style="background:rgba(0,212,255,0.1);border-color:var(--cyan);box-shadow:0 0 30px var(--cyan-glow);">🔒</div>
+                </div>
+                <div class="result-title">Rede Protegida</div>
+                <div class="result-subtitle" style="color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow);">Túnel VPN Ativo — Proton P2P</div>
+                <div class="result-details">
+                    <div class="detail-item"><div class="detail-label">Túnel VPN</div><div class="detail-value cyan">PROTON P2P</div></div>
+                    <div class="detail-item"><div class="detail-label">DNS</div><div class="detail-value ok">QUAD9 (DoH)</div></div>
+                    <div class="detail-item"><div class="detail-label">IPv6</div><div class="detail-value ok">BLOQUEADO</div></div>
+                    <div class="detail-item"><div class="detail-label">WebRTC</div><div class="detail-value ok">BLOQUEADO</div></div>
+                    <div class="detail-item"><div class="detail-label">Vazamento IP</div><div class="detail-value ok">NENHUM</div></div>
+                    <div class="detail-item"><div class="detail-label">Tráfego</div><div class="detail-value ok">CRIPTOGRAFADO</div></div>
+                </div>
+                <button class="btn-primary" onclick="location.reload()">CONCLUÍDO</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TOKEN_VALIDO = 'nexuscrypt';
+
+        // ============================================================
+        // PARTÍCULAS
+        // ============================================================
+        (function initParticles() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const PARTICLE_COUNT = 50;
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    radius: Math.random() * 1.5 + 0.5,
+                    opacity: Math.random() * 0.5 + 0.2
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, 212, 255, ${p.opacity})`;
+                    ctx.fill();
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x, dy = p.y - p2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 * (1 - dist / 120)})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        // ============================================================
+        // SISTEMA DE ÁUDIO PREMIUM
+        // ============================================================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let audioReady = false;
+        let pendingScan = null;
+
+        // Ativa o áudio (chamado quando o usuário toca no overlay)
+        function activateAudio() {
+            if (audioReady) return;
+
+            try {
+                audioCtx = new AudioContext();
+
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                audioReady = true;
+                document.getElementById('audioOverlay').classList.remove('active');
+
+                // Som de ativação
+                playActivationSound();
+
+                // Ambiente contínuo
+                startAmbientSound();
+
+                // Roda o scan pendente
+                if (pendingScan === 'blindagem') {
+                    startBlindagemScan();
+                } else if (pendingScan === 'rede') {
+                    startRedeScan();
+                }
+                pendingScan = null;
+
+            } catch (e) {
+                console.log('Erro ao ativar áudio:', e);
+                document.getElementById('audioOverlay').classList.remove('active');
+            }
+        }
+
+        function playActivationSound() {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.7);
+            } catch (e) {}
+        }
+
+        function startAmbientSound() {
+            if (!audioCtx) return;
+            try {
+                // Hum grave
+                const hum = audioCtx.createOscillator();
+                const humGain = audioCtx.createGain();
+                hum.type = 'sine';
+                hum.frequency.value = 45;
+                humGain.gain.value = 0.012;
+                hum.connect(humGain);
+                humGain.connect(audioCtx.destination);
+                hum.start();
+
+                // Camada média modulada
+                const crystal = audioCtx.createOscillator();
+                const crystalGain = audioCtx.createGain();
+                crystal.type = 'triangle';
+                crystal.frequency.value = 220;
+                crystalGain.gain.value = 0.004;
+                crystal.connect(crystalGain);
+                crystalGain.connect(audioCtx.destination);
+                crystal.start();
+
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.2;
+                lfoGain.gain.value = 0.003;
+                lfo.connect(lfoGain);
+                lfoGain.connect(crystalGain.gain);
+                lfo.start();
+            } catch (e) {}
+        }
+
+        function playBeep(freq = 800, duration = 0.08, volume = 0.06, type = 'sine') {
+            if (!audioCtx || !audioReady) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playBootSound() {
+            if (!audioCtx || !audioReady) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(250, audioCtx.currentTime + 0.6);
+                gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.8);
+
+                setTimeout(() => playBeep(600, 0.15, 0.06, 'sine'), 400);
+            } catch (e) {}
+        }
+
+        function playNetworkBootSound() {
+            if (!audioCtx || !audioReady) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(420, audioCtx.currentTime + 0.8);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+
+                setTimeout(() => {
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(250, audioCtx.currentTime);
+                    osc2.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.4);
+                    gain2.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start();
+                    osc2.stop(audioCtx.currentTime + 0.5);
+                }, 500);
+            } catch (e) {}
+        }
+
+        function playVerificationBeep(index) {
+            if (!audioCtx || !audioReady) return;
+            const baseFreq = 400 + (index * 40);
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = baseFreq;
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        function playNetworkBeep() {
+            if (!audioCtx || !audioReady) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.value = 80;
+                gain2.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.35);
+            } catch (e) {}
+        }
+
+        function playSuccess() {
+            if (!audioCtx || !audioReady) return;
+            const notes = [392.00, 523.25, 659.25, 783.99];
+            notes.forEach((freq, i) => {
+                setTimeout(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.7);
+                }, i * 130);
+            });
+
+            setTimeout(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 1046.50;
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.5);
+            }, 600);
+        }
+
+        function playNetworkSuccess() {
+            if (!audioCtx || !audioReady) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.8);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+
+                setTimeout(() => {
+                    [261.63, 392.00, 523.25].forEach((freq) => {
+                        const osc2 = audioCtx.createOscillator();
+                        const gain2 = audioCtx.createGain();
+                        osc2.type = 'sine';
+                        osc2.frequency.value = freq;
+                        gain2.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+                        osc2.connect(gain2);
+                        gain2.connect(audioCtx.destination);
+                        osc2.start();
+                        osc2.stop(audioCtx.currentTime + 1.2);
+                    });
+                }, 700);
+            } catch (e) {}
+        }
+
+        function vibrate(d = 30) { if (navigator.vibrate) navigator.vibrate(d); }
+        function vibrateSuccess() { if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 100]); }
+
+        // ============================================================
+        // BOTÕES DE CONTROLE
+        // ============================================================
+        function goBack() {
+            vibrate(20);
+            playBeep(600, 0.08, 0.05);
+
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab && activeTab.id === 'tabRede') {
+                switchTab('blindagem');
+                return;
+            }
+
+            const scannerActive = document.getElementById('scannerContent').classList.contains('active');
+            if (scannerActive) {
+                document.getElementById('scannerContent').classList.remove('active');
+                document.getElementById('accessDenied').classList.add('active');
+                return;
+            }
+
+            if (window.history.length > 1) {
+                window.history.back();
+            }
+        }
+
+        function confirmExit() {
+            vibrate(30);
+            playBeep(400, 0.1, 0.06);
+            document.getElementById('exitModal').classList.add('active');
+        }
+
+        function closeExitModal() {
+            vibrate(15);
+            document.getElementById('exitModal').classList.remove('active');
+        }
+
+        function doExit() {
+            vibrate([50, 30, 50]);
+            playBeep(300, 0.2, 0.08);
+
+            // Tenta fechar de 5 formas
+            try { window.close(); } catch (e) {}
+
+            setTimeout(() => {
+                try {
+                    window.open('', '_self', '');
+                    window.close();
+                } catch (e) {}
+
+                setTimeout(() => {
+                    try { window.location.replace('about:blank'); } catch (e) {}
+
+                    setTimeout(() => {
+                        try { window.location.href = 'about:blank'; } catch (e) {}
+
+                        setTimeout(() => {
+                            document.body.innerHTML = `
+                                <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d12;color:#00d4ff;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;text-align:center;padding:20px;flex-direction:column;">
+                                    <div style="font-size:80px;margin-bottom:24px;animation:pulse 2s ease-in-out infinite;">🛡️</div>
+                                    <h2 style="font-size:22px;margin-bottom:14px;color:#fff;letter-spacing:2px;">SESSÃO ENCERRADA</h2>
+                                    <p style="font-size:13px;color:#6b7a8f;line-height:1.7;max-width:300px;">
+                                        Protocolo NEXUS CRYPT finalizado com sucesso.<br><br>
+                                        <strong style="color:#00d4ff;">Feche esta aba no navegador para sair completamente.</strong>
+                                    </p>
+                                    <p style="font-size:10px;color:#3d4653;margin-top:40px;letter-spacing:2px;text-transform:uppercase;">
+                                        NEXUS CRYPT MDM — DEFENSIVE SECURITY
+                                    </p>
+                                </div>
+                                <style>
+                                    @keyframes pulse {
+                                        0%, 100% { transform: scale(1); opacity: 1; }
+                                        50% { transform: scale(1.1); opacity: 0.8; }
+                                    }
+                                </style>
+                            `;
+                        }, 500);
+                    }, 300);
+                }, 200);
+            }, 100);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('exitModal');
+                if (modal.classList.contains('active')) closeExitModal();
+            }
+        });
+
+        // ============================================================
+        // SPLASH
+        // ============================================================
+        (function splash() {
+            const loader = document.getElementById('splashLoader');
+            const status = document.getElementById('splashStatus');
+            const splash = document.getElementById('splash');
+            const steps = [
+                { p: 20, s: 'Carregando módulos...' },
+                { p: 45, s: 'Verificando integridade...' },
+                { p: 70, s: 'Inicializando protocolo...' },
+                { p: 90, s: 'Ativando blindagem...' },
+                { p: 100, s: 'Sistema pronto' }
+            ];
+            let i = 0;
+            function next() {
+                if (i < steps.length) {
+                    loader.style.width = steps[i].p + '%';
+                    status.textContent = steps[i].s;
+                    i++;
+                    setTimeout(next, 350);
+                } else {
+                    setTimeout(() => {
+                        splash.classList.add('hidden');
+                        checkToken();
+                    }, 500);
+                }
+            }
+            next();
+        })();
+
+        function checkToken() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const authToken = urlParams.get('auth');
+            if (authToken === TOKEN_VALIDO) {
+                document.getElementById('accessDenied').classList.remove('active');
+                document.getElementById('scannerContent').classList.add('active');
+                startBlindagemScan();
+            } else {
+                document.getElementById('accessDenied').classList.add('active');
+                document.getElementById('scannerContent').classList.remove('active');
+                vibrate(100);
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            vibrate(20);
+            if (tab === 'blindagem') {
+                document.getElementById('tabBlindagem').classList.add('active');
+                document.getElementById('contentBlindagem').classList.add('active');
+            } else {
+                document.getElementById('tabRede').classList.add('active');
+                document.getElementById('contentRede').classList.add('active');
+            }
+        }
+
+        function resetMetrics() {
+            for (let n = 1; n <= 4; n++) {
+                const circle = document.getElementById('circle' + n);
+                const percent = document.getElementById('percent' + n);
+                const status = document.getElementById('status' + n);
+                const card = document.getElementById('metric' + n);
+                if (circle) circle.style.strokeDashoffset = '157';
+                if (percent) percent.textContent = '0%';
+                if (status) status.textContent = 'Aguardando';
+                if (card) card.classList.remove('verified');
+            }
+        }
+
+        // ============================================================
+        // SCAN BLINDAGEM
+        // ============================================================
+        function startBlindagemScan() {
+            if (!audioReady) {
+                pendingScan = 'blindagem';
+                document.getElementById('audioOverlay').classList.add('active');
+                resetMetrics();
+                return;
+            }
+
+            resetMetrics();
+            playBootSound();
+
+            const time = new Date().toTimeString().split(' ')[0];
+
+            const logs = [
+                { msg: '<span class="info">Inicializando módulo de verificação...</span>', metric: null, delay: 800 },
+                { msg: '<span class="info">[1/12]</span> Código Alfanumérico (14+)... <span class="ok">✓ ATIVO</span>', metric: 2, delay: 900 },
+                { msg: '<span class="info">[2/12]</span> USB Restricted Mode... <span class="ok">✓ ATIVO</span>', metric: 3, delay: 900 },
+                { msg: '<span class="info">[3/12]</span> Lockdown Mode... <span class="ok">✓ ATIVO</span>', metric: 4, delay: 900 },
+                { msg: '<span class="info">[4/12]</span> Criptografia AES-256... <span class="ok">✓ ATIVA</span>', metric: 1, delay: 900 },
+                { msg: '<span class="info">[5/12]</span> Central de Controle... <span class="ok">✓ BLOQUEADA</span>', metric: null, delay: 700 },
+                { msg: '<span class="info">[6/12]</span> Apagar Dados (10 tentativas)... <span class="ok">✓ ATIVO</span>', metric: null, delay: 700 },
+                { msg: '<span class="info">[7/12]</span> Perfil MDM... <span class="ok">✓ NEXUS_CRYPT</span>', metric: null, delay: 700 },
+                { msg: '<span class="info">[8/12]</span> Proteção iCloud... <span class="ok">✓ BLOQUEADO</span>', metric: null, delay: 700 },
+                { msg: '<span class="warn">[SCAN]</span> Verificando vulnerabilidades...</span>', metric: null, delay: 1200 },
+                { msg: 'Cellebrite UFED: <span class="err">BLOQUEADO</span>', metric: null, delay: 800 },
+                { msg: 'GrayKey: <span class="err">BLOQUEADO</span>', metric: null, delay: 800 },
+                { msg: 'Força Bruta: <span class="err">BLOQUEADO</span>', metric: null, delay: 800 },
+                { msg: 'Extração USB: <span class="err">BLOQUEADA</span>', metric: null, delay: 800 },
+                { msg: '<span class="ok">[DONE]</span> Sistema 100% seguro. 0 brechas.', metric: null, delay: 1000 }
+            ];
+
+            let currentLog = 0;
+            const logArea = document.getElementById('logArea');
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressLabel = document.getElementById('progressLabel');
+            const resultBox = document.getElementById('resultBox');
+            const progressContainer = document.getElementById('progressContainer');
+
+            function addLog() {
+                if (currentLog < logs.length) {
+                    const line = document.createElement('div');
+                    line.className = 'log-line';
+                    line.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${logs[currentLog].msg}</span>`;
+                    logArea.appendChild(line);
+                    logArea.scrollTop = logArea.scrollHeight;
+
+                    const progress = Math.round(((currentLog + 1) / logs.length) * 100);
+                    progressFill.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+                    if (progress < 30) progressLabel.textContent = 'Verificando Blindagem';
+                    else if (progress < 60) progressLabel.textContent = 'Verificando Vulnerabilidades';
+                    else progressLabel.textContent = 'Finalizando Análise';
+
+                    playVerificationBeep(currentLog);
+                    vibrate(15);
+
+                    if (logs[currentLog].metric) {
+                        const metricNum = logs[currentLog].metric;
+                        setTimeout(() => fillMetric(metricNum), 300);
+                    }
+
+                    const nextDelay = logs[currentLog].delay || 700;
+                    currentLog++;
+                    setTimeout(addLog, nextDelay);
+                } else {
+                    progressFill.style.width = '100%';
+                    progressPercent.textContent = '100%';
+                    progressLabel.textContent = 'Verificação Concluída';
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        resultBox.classList.add('active');
+                        playSuccess();
+                        vibrateSuccess();
+                    }, 600);
+                }
+            }
+            setTimeout(addLog, 800);
+        }
+
+        function fillMetric(n) {
+            const circle = document.getElementById('circle' + n);
+            const percent = document.getElementById('percent' + n);
+            const status = document.getElementById('status' + n);
+            const card = document.getElementById('metric' + n);
+
+            if (!circle || !percent || !status || !card) return;
+
+            card.classList.add('verified');
+            circle.style.strokeDashoffset = '0';
+
+            let p = 0;
+            const interval = setInterval(() => {
+                p += 2;
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(interval);
+                    status.textContent = 'Verificado';
+                }
+                percent.textContent = p + '%';
+            }, 30);
+        }
+
+        // ============================================================
+        // SCAN REDE
+        // ============================================================
+        function startRedeScan() {
+            if (!audioReady) {
+                pendingScan = 'rede';
+                document.getElementById('audioOverlay').classList.add('active');
+                return;
+            }
+
+            vibrate(20);
+            playNetworkBootSound();
+
+            document.getElementById('redeIntro').style.display = 'none';
+            document.getElementById('progressContainerRede').style.display = 'block';
+            document.getElementById('logAreaRedeWrapper').style.display = 'block';
+
+            const time = new Date().toTimeString().split(' ')[0];
+            const logs = [
+                { msg: '<span class="info">Inicializando scan de rede...</span>', delay: 800 },
+                { msg: '<span class="info">[1/6]</span> Verificando túnel VPN... <span class="ok">✓ PROTON P2P</span>', delay: 1000 },
+                { msg: '<span class="info">[2/6]</span> Verificando DNS criptografado... <span class="ok">✓ QUAD9 (DoH)</span>', delay: 1000 },
+                { msg: '<span class="info">[3/6]</span> Verificando IPv6... <span class="ok">✓ BLOQUEADO</span>', delay: 1000 },
+                { msg: '<span class="info">[4/6]</span> Verificando WebRTC... <span class="ok">✓ BLOQUEADO</span>', delay: 1000 },
+                { msg: '<span class="info">[5/6]</span> Testando vazamento de IP... <span class="ok">✓ NENHUM</span>', delay: 1200 },
+                { msg: '<span class="info">[6/6]</span> Testando velocidade... <span class="ok">✓ ESTÁVEL</span>', delay: 1200 },
+                { msg: '<span class="warn">[SCAN]</span> Verificando segurança da rede...</span>', delay: 1200 },
+                { msg: 'DNS Hijacking: <span class="err">BLOQUEADO</span>', delay: 800 },
+                { msg: 'Man-in-the-Middle: <span class="err">BLOQUEADO</span>', delay: 800 },
+                { msg: 'Rastreamento de IP: <span class="err">IMPEDIDO</span>', delay: 800 },
+                { msg: '<span class="ok">[DONE]</span> Rede 100% protegida. Túnel ativo.', delay: 1000 }
+            ];
+
+            let currentLog = 0;
+            const logArea = document.getElementById('logAreaRede');
+            const progressFill = document.getElementById('progressFillRede');
+            const progressPercent = document.getElementById('progressPercentRede');
+            const progressLabel = document.getElementById('progressLabelRede');
+            const resultBox = document.getElementById('resultBoxRede');
+            const progressContainer = document.getElementById('progressContainerRede');
+
+            function addLog() {
+                if (currentLog < logs.length) {
+                    const line = document.createElement('div');
+                    line.className = 'log-line';
+                    line.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${logs[currentLog].msg}</span>`;
+                    logArea.appendChild(line);
+                    logArea.scrollTop = logArea.scrollHeight;
+
+                    const progress = Math.round(((currentLog + 1) / logs.length) * 100);
+                    progressFill.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+                    if (progress < 30) progressLabel.textContent = 'Analisando Túnel';
+                    else if (progress < 60) progressLabel.textContent = 'Testando Vazamentos';
+                    else progressLabel.textContent = 'Finalizando Análise';
+
+                    playNetworkBeep();
+                    vibrate(15);
+
+                    const nextDelay = logs[currentLog].delay || 800;
+                    currentLog++;
+                    setTimeout(addLog, nextDelay);
+                } else {
+                    progressFill.style.width = '100%';
+                    progressPercent.textContent = '100%';
+                    progressLabel.textContent = 'Scan Concluído';
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        document.getElementById('logAreaRedeWrapper').style.display = 'none';
+                        resultBox.style.display = 'block';
+                        playNetworkSuccess();
+                        vibrateSuccess();
+                    }, 600);
+                }
+            }
+            setTimeout(addLog, 800);
+        }
+    </script>
+</body>
+</html>
